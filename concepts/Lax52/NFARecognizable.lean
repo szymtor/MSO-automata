@@ -1,4 +1,4 @@
-import Lax52.WordStructure
+import Mathlib.Computability.NFA
 
 /-!
 ---
@@ -11,8 +11,6 @@ nondeterministic automaton whose state type is finite.
 -/
 
 namespace Lax52.NFARecognizable
-
-open Lax52.WordStructure
 
 universe u
 

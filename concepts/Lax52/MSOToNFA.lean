@@ -1,4 +1,5 @@
 import Lax52.NFARecognizable
+import Lax52.WordStructure
 
 /-!
 ---
