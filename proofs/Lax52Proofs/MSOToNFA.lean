@@ -8,10 +8,7 @@ open Lax52
 open Lax52.MSOSyntax
 open Lax52.MSOSemantics
 open Lax52.WordStructure
-open Lax52.MarkedWords
 open Lax52.NFARecognizable
-open Lax52.ValidMarkedWordsRegular
-open Lax52.MSOFormulaRegularity
 open Lax52.NFAToMSO
 open Lax52.MSOToNFA
 
@@ -72,6 +69,7 @@ theorem sentenceLanguage_eq_comap_formulaLanguage {Sigma : Type u}
     let v : Fin 0 → Fin (w.map noMarkerLetter).length := fun x => Fin.elim0 x
     let V : Fin 0 → Set (Fin (w.map noMarkerLetter).length) := fun X => Fin.elim0 X
     refine ⟨v, V, represents_noMarker w, ?_⟩
+    rw [markedRealize_iff_realize]
     change MSOSemantics.Realize phi v V
     have hv : e ∘ (fun x : Fin 0 => Fin.elim0 x) = v := Subsingleton.elim _ _
     have hV : (fun X => e '' (fun X : Fin 0 => Fin.elim0 X) X) = V :=
@@ -79,7 +77,7 @@ theorem sentenceLanguage_eq_comap_formulaLanguage {Sigma : Type u}
     rw [← hv, ← hV]
     exact (MSOSemantics.realize_equiv e phi
       (fun x : Fin 0 => Fin.elim0 x)
-      (fun X : Fin 0 => Fin.elim0 X)).mpr hw
+      (fun X : Fin 0 => Fin.elim0 X)).mpr ((wordModels_iff_realize w phi).mp hw)
   · rintro ⟨v, V, hrep, hphi⟩
     letI : (wordLanguage Sigma).Structure (Fin w.length) := wordStructure w
     letI : (wordLanguage Sigma).Structure (Fin (w.map noMarkerLetter).length) :=
@@ -90,12 +88,14 @@ theorem sentenceLanguage_eq_comap_formulaLanguage {Sigma : Type u}
     have hV : V = fun X : Fin 0 => Fin.elim0 X := Subsingleton.elim _ _
     subst v
     subst V
+    rw [markedRealize_iff_realize] at hphi
     change MSOSemantics.Realize phi
       (fun x : Fin 0 => Fin.elim0 x) (fun X : Fin 0 => Fin.elim0 X) at hphi
     have hv : e ∘ (fun x : Fin 0 => Fin.elim0 x) =
         (fun x : Fin 0 => Fin.elim0 x) := Subsingleton.elim _ _
     have hV : (fun X => e '' (fun X : Fin 0 => Fin.elim0 X) X) =
         (fun X : Fin 0 => Fin.elim0 X) := Subsingleton.elim _ _
+    apply (wordModels_iff_realize w phi).mpr
     apply (MSOSemantics.realize_equiv e phi
       (fun x : Fin 0 => Fin.elim0 x)
       (fun X : Fin 0 => Fin.elim0 X)).mp

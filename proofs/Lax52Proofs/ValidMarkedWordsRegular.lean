@@ -1,4 +1,5 @@
 import Lax52Proofs.Regular
+import Lax52Proofs.MarkedWords
 
 namespace Lax52Proofs
 
@@ -6,10 +7,7 @@ open Lax52
 open Lax52.MSOSyntax
 open Lax52.MSOSemantics
 open Lax52.WordStructure
-open Lax52.MarkedWords
 open Lax52.NFARecognizable
-open Lax52.ValidMarkedWordsRegular
-open Lax52.MSOFormulaRegularity
 open Lax52.NFAToMSO
 open Lax52.MSOToNFA
 
@@ -198,11 +196,6 @@ theorem validMarked_iff_exactlyOnce {Sigma : Type u} {n m : Nat}
     · intro i X
       rfl
 
-/--
----
-conclusion: Lax52.ValidMarkedWordsRegular.validMarkedLanguage_isRegular
----
--/
 theorem validMarkedLanguage_isRegular_proof {Sigma : Type u} [Fintype Sigma] (n m : Nat) :
     (validMarkedLanguage Sigma n m).IsRegular := by
   refine ⟨Fin n → OccurrenceCount, inferInstance, validMarkedDFA Sigma n m, ?_⟩

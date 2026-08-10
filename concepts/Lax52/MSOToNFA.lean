@@ -1,4 +1,3 @@
-import Lax52.MSOFormulaRegularity
 import Lax52.NFARecognizable
 
 /-!

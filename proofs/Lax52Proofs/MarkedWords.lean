@@ -1,20 +1,6 @@
 import Lax52.WordStructure
 
-/-!
----
-title: Marked words representing valuations
-type: definition
----
-
-A word together with valuations of finitely many first-order and monadic
-second-order variables is represented over the alphabet
-`Sigma × 2^(Fin n ⊕ Fin m)`.  A first-order marker occurs at exactly its one
-assigned position, while a monadic marker occurs at all positions belonging to
-its assigned set.  The language of an open formula consists only of valid
-representations whose represented valuation satisfies the formula.
--/
-
-namespace Lax52.MarkedWords
+namespace Lax52Proofs
 
 open FirstOrder
 open FirstOrder.Language
@@ -29,16 +15,20 @@ position. -/
 abbrev MarkedLetter (Sigma : Type u) (n m : Nat) :=
   Sigma × Set (Fin n ⊕ Fin m)
 
-/-- The word structure underlying a marked word, obtained by forgetting all
+/-- A structure has the relational content of a marked word when it interprets
+only the underlying alphabet letters and the natural order, ignoring all
 variable markers. -/
-@[reducible] def markedWordStructure {Sigma : Type u} {n m : Nat}
-    (w : List (MarkedLetter Sigma n m)) :
-    (wordLanguage Sigma).Structure (Fin w.length) where
-  funMap := fun f => nomatch f
-  RelMap := fun r xs => by
-    cases r with
-    | letter a => exact (w.get (xs 0)).1 = a
-    | le => exact xs 0 ≤ xs 1
+def IsMarkedWordStructure {Sigma : Type u} {n m : Nat}
+    (w : List (MarkedLetter Sigma n m))
+    (S : (wordLanguage Sigma).Structure (Fin w.length)) : Prop :=
+  (∀ (a : Sigma) (xs : Fin 1 → Fin w.length),
+      @FirstOrder.Language.Structure.RelMap
+        (wordLanguage Sigma) (Fin w.length) S 1 (WordRelation.letter a) xs ↔
+        (w.get (xs 0)).1 = a) ∧
+  (∀ xs : Fin 2 → Fin w.length,
+      @FirstOrder.Language.Structure.RelMap
+        (wordLanguage Sigma) (Fin w.length) S 2 WordRelation.le xs ↔
+        xs 0 ≤ xs 1)
 
 /-- A marked word exactly represents the supplied valuations. -/
 def Represents {Sigma : Type u} {n m : Nat} (w : List (MarkedLetter Sigma n m))
@@ -56,14 +46,14 @@ def ValidMarked {Sigma : Type u} {n m : Nat}
 /-- Satisfaction of an open formula by a represented marked word and its
 valuations. -/
 def MarkedRealize {Sigma : Type u} {n m : Nat} (w : List (MarkedLetter Sigma n m))
-    (phi : MSOSyntax.Formula (wordLanguage Sigma) n m)
-    (v : Fin n → Fin w.length) (V : Fin m → Set (Fin w.length)) : Prop := by
-  letI := markedWordStructure w
-  exact MSOSemantics.Realize phi v V
+    (phi : Formula (wordLanguage Sigma) n m)
+    (v : Fin n → Fin w.length) (V : Fin m → Set (Fin w.length)) : Prop :=
+  ∀ S : (wordLanguage Sigma).Structure (Fin w.length), IsMarkedWordStructure w S →
+    @Realize (wordLanguage Sigma) (Fin w.length) S n m phi v V
 
 /-- The valid marked encodings whose represented valuations satisfy `phi`. -/
 def formulaLanguage {Sigma : Type u} {n m : Nat}
-    (phi : MSOSyntax.Formula (wordLanguage Sigma) n m) :
+    (phi : Formula (wordLanguage Sigma) n m) :
     _root_.Language (MarkedLetter Sigma n m) :=
   {w | ∃ (v : Fin n → Fin w.length) (V : Fin m → Set (Fin w.length)),
     Represents w v V ∧ MarkedRealize w phi v V}
@@ -73,4 +63,4 @@ def validMarkedLanguage (Sigma : Type u) (n m : Nat) :
     _root_.Language (MarkedLetter Sigma n m) :=
   {w | ValidMarked w}
 
-end Lax52.MarkedWords
+end Lax52Proofs

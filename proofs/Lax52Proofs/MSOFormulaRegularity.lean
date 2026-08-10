@@ -1,4 +1,5 @@
 import Lax52Proofs.SemanticTransport
+import Lax52Proofs.Structures
 import Lax52Proofs.ValidMarkedWordsRegular
 
 namespace Lax52Proofs
@@ -9,10 +10,7 @@ open Lax52
 open Lax52.MSOSyntax
 open Lax52.MSOSemantics
 open Lax52.WordStructure
-open Lax52.MarkedWords
 open Lax52.NFARecognizable
-open Lax52.ValidMarkedWordsRegular
-open Lax52.MSOFormulaRegularity
 open Lax52.NFAToMSO
 open Lax52.MSOToNFA
 
@@ -255,7 +253,7 @@ theorem formulaLanguage_falsum {Sigma : Type u} {n m : Nat} :
     MarkedRealize w (MSOSyntax.Formula.falsum : MSOSyntax.Formula (wordLanguage Sigma) n m) v V) ↔ False
   constructor
   · rintro ⟨v, V, hrep, hfalse⟩
-    exact hfalse
+    exact (markedRealize_iff_realize w _ v V).mp hfalse
   · exact False.elim
 
 theorem formulaLanguage_equal {Sigma : Type u} {n m : Nat}
@@ -274,6 +272,7 @@ theorem formulaLanguage_equal {Sigma : Type u} {n m : Nat}
     simp only [bothMarkerBool_eq_true]
     apply (somewhere_two_fo_iff hrep _ _).mpr
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change t₁.realize v = t₂.realize v at hreal
     simpa only [wordTerm_realize] using hreal
   · rintro ⟨⟨v, V, hrep⟩, hsome⟩
@@ -282,6 +281,7 @@ theorem formulaLanguage_equal {Sigma : Type u} {n m : Nat}
     simp only [bothMarkerBool_eq_true] at hsome
     have hxy := (somewhere_two_fo_iff hrep _ _).mp hsome
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize]
     change t₁.realize v = t₂.realize v
     simpa only [wordTerm_realize] using hxy
 
@@ -300,6 +300,7 @@ theorem formulaLanguage_mem {Sigma : Type u} {n m : Nat}
     simp only [bothMarkerBool_eq_true]
     apply (somewhere_fo_so_iff hrep _ _).mpr
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change t.realize v ∈ V X at hreal
     simpa only [wordTerm_realize] using hreal
   · rintro ⟨⟨v, V, hrep⟩, hsome⟩
@@ -308,6 +309,7 @@ theorem formulaLanguage_mem {Sigma : Type u} {n m : Nat}
     simp only [bothMarkerBool_eq_true] at hsome
     have hx := (somewhere_fo_so_iff hrep _ _).mp hsome
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize]
     change t.realize v ∈ V X
     simpa only [wordTerm_realize] using hx
 
@@ -328,6 +330,7 @@ theorem formulaLanguage_letter {Sigma : Type u} [DecidableEq Sigma] {n m : Nat}
     simp only [letterMarkerBool_eq_true]
     apply (somewhere_letter_iff hrep _ _).mpr
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change (w.get (t.realize v)).1 = a at hreal
     simpa only [wordTerm_realize] using hreal
   · rintro ⟨⟨v, V, hrep⟩, hsome⟩
@@ -336,6 +339,7 @@ theorem formulaLanguage_letter {Sigma : Type u} [DecidableEq Sigma] {n m : Nat}
     simp only [letterMarkerBool_eq_true] at hsome
     have hx := (somewhere_letter_iff hrep _ _).mp hsome
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize]
     change (w.get (t.realize v)).1 = a
     simpa only [wordTerm_realize] using hx
 
@@ -357,6 +361,7 @@ theorem formulaLanguage_le {Sigma : Type u} {n m : Nat}
     simp only [markerBool_eq_true]
     apply (ordered_fo_iff hrep _ _).mpr
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change t₁.realize v ≤ t₂.realize v at hreal
     simpa only [wordTerm_realize] using hreal
   · rintro ⟨⟨v, V, hrep⟩, horder⟩
@@ -365,6 +370,7 @@ theorem formulaLanguage_le {Sigma : Type u} {n m : Nat}
     simp only [markerBool_eq_true] at horder
     have hxy := (ordered_fo_iff hrep _ _).mp horder
     letI := markedWordStructure w
+    rw [markedRealize_iff_realize]
     change t₁.realize v ≤ t₂.realize v
     simpa only [wordTerm_realize] using hxy
 
@@ -374,12 +380,13 @@ theorem formulaLanguage_or {Sigma : Type u} {n m : Nat}
   ext w
   simp only [Language.mem_add]
   constructor
-  · rintro ⟨v, V, hrep, hphi | hpsi⟩
+  · rintro ⟨v, V, hrep, hreal⟩
+    obtain hphi | hpsi := (markedRealize_or w phi psi v V).mp hreal
     · exact Or.inl ⟨v, V, hrep, hphi⟩
     · exact Or.inr ⟨v, V, hrep, hpsi⟩
   · rintro (⟨v, V, hrep, hphi⟩ | ⟨v, V, hrep, hpsi⟩)
-    · exact ⟨v, V, hrep, Or.inl hphi⟩
-    · exact ⟨v, V, hrep, Or.inr hpsi⟩
+    · exact ⟨v, V, hrep, (markedRealize_or w phi psi v V).mpr (Or.inl hphi)⟩
+    · exact ⟨v, V, hrep, (markedRealize_or w phi psi v V).mpr (Or.inr hpsi)⟩
 
 theorem formulaLanguage_neg {Sigma : Type u} {n m : Nat}
     (phi : MSOSyntax.Formula (wordLanguage Sigma) n m) :
@@ -389,13 +396,14 @@ theorem formulaLanguage_neg {Sigma : Type u} {n m : Nat}
   ext w
   simp only [Language.mem_inf, Set.mem_inter_iff, Set.mem_compl_iff]
   constructor
-  · rintro ⟨v, V, hrep, hnphi⟩
+  · rintro ⟨v, V, hrep, hreal⟩
+    have hnphi := (markedRealize_neg w phi v V).mp hreal
     refine ⟨⟨v, V, hrep⟩, ?_⟩
     rintro ⟨v', V', hrep', hphi⟩
     obtain ⟨rfl, rfl⟩ := represents_unique hrep hrep'
     exact hnphi hphi
   · rintro ⟨⟨v, V, hrep⟩, hnot⟩
-    refine ⟨v, V, hrep, ?_⟩
+    refine ⟨v, V, hrep, (markedRealize_neg w phi v V).mpr ?_⟩
     intro hphi
     exact hnot ⟨v, V, hrep, hphi⟩
 
@@ -753,6 +761,7 @@ theorem formulaLanguage_exFO {Sigma : Type u} {n m : Nat}
   constructor
   · rintro ⟨v, V, hrep, hreal⟩
     letI : (wordLanguage Sigma).Structure (Fin w.length) := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change ∃ x : Fin w.length,
       MSOSemantics.Realize phi (MSOSemantics.consVal x v) V at hreal
     obtain ⟨x, hx⟩ := hreal
@@ -777,7 +786,7 @@ theorem formulaLanguage_exFO {Sigma : Type u} {n m : Nat}
       exact hx
     change w ∈ Set.image (List.map dropFO) (formulaLanguage phi)
     refine ⟨u, ⟨v', V', hrep', ?_⟩, ?_⟩
-    · exact hphi'
+    · exact (markedRealize_iff_realize u phi v' V').mpr hphi'
     · simpa [u] using map_dropFO_addFO w x
   · change w ∈ Set.image (List.map dropFO) (formulaLanguage phi) → _
     rintro ⟨u, ⟨v, V, hrep, hphi⟩, rfl⟩
@@ -788,6 +797,7 @@ theorem formulaLanguage_exFO {Sigma : Type u} {n m : Nat}
     let v' : Fin n → Fin (u.map dropFO).length := fun x => e (v x.succ)
     let V' : Fin m → Set (Fin (u.map dropFO).length) := fun X => e '' V X
     refine ⟨v', V', by simpa [e, v', V'] using represents_dropFO hrep, ?_⟩
+    rw [markedRealize_iff_realize]
     change ∃ x : Fin (u.map dropFO).length,
       MSOSemantics.Realize phi (MSOSemantics.consVal x v') V'
     refine ⟨e (v 0), ?_⟩
@@ -797,6 +807,7 @@ theorem formulaLanguage_exFO {Sigma : Type u} {n m : Nat}
       · simp [MSOSemantics.consVal]
       · rfl
     rw [hv]
+    rw [markedRealize_iff_realize] at hphi
     exact (MSOSemantics.realize_equiv e phi v V).mpr hphi
 
 theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
@@ -807,6 +818,7 @@ theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
   constructor
   · rintro ⟨v, V, hrep, hreal⟩
     letI : (wordLanguage Sigma).Structure (Fin w.length) := markedWordStructure w
+    rw [markedRealize_iff_realize] at hreal
     change ∃ X : Set (Fin w.length),
       MSOSemantics.Realize phi v (MSOSemantics.consVal X V) at hreal
     obtain ⟨X, hX⟩ := hreal
@@ -831,7 +843,7 @@ theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
       exact hX
     change w ∈ Set.image (List.map dropSO) (formulaLanguage phi)
     refine ⟨u, ⟨v', V', hrep', ?_⟩, ?_⟩
-    · exact hphi'
+    · exact (markedRealize_iff_realize u phi v' V').mpr hphi'
     · simpa [u] using map_dropSO_addSO w X
   · change w ∈ Set.image (List.map dropSO) (formulaLanguage phi) → _
     rintro ⟨u, ⟨v, V, hrep, hphi⟩, rfl⟩
@@ -842,6 +854,7 @@ theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
     let v' : Fin n → Fin (u.map dropSO).length := fun x => e (v x)
     let V' : Fin m → Set (Fin (u.map dropSO).length) := fun X => e '' V X.succ
     refine ⟨v', V', by simpa [e, v', V'] using represents_dropSO hrep, ?_⟩
+    rw [markedRealize_iff_realize]
     change ∃ X : Set (Fin (u.map dropSO).length),
       MSOSemantics.Realize phi v' (MSOSemantics.consVal X V')
     refine ⟨e '' V 0, ?_⟩
@@ -849,13 +862,9 @@ theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
       funext Y
       refine Fin.cases rfl (fun _ => rfl) Y
     rw [hV]
+    rw [markedRealize_iff_realize] at hphi
     exact (MSOSemantics.realize_equiv e phi v V).mpr hphi
 
-/--
----
-conclusion: Lax52.MSOFormulaRegularity.formulaLanguage_isRegular
----
--/
 theorem formulaLanguage_isRegular_proof {Sigma : Type u} [Fintype Sigma] {n m : Nat}
     (phi : MSOSyntax.Formula (wordLanguage Sigma) n m) :
     (formulaLanguage phi).IsRegular := by

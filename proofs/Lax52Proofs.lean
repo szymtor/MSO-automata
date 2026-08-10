@@ -1,4 +1,7 @@
 import Lax52Proofs.Regular
+import Lax52Proofs.MSOSemantics
+import Lax52Proofs.MarkedWords
+import Lax52Proofs.Structures
 import Lax52Proofs.SemanticTransport
 import Lax52Proofs.ValidMarkedWordsRegular
 import Lax52Proofs.MSOFormulaRegularity

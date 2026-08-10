@@ -8,10 +8,7 @@ open Lax52
 open Lax52.MSOSyntax
 open Lax52.MSOSemantics
 open Lax52.WordStructure
-open Lax52.MarkedWords
 open Lax52.NFARecognizable
-open Lax52.ValidMarkedWordsRegular
-open Lax52.MSOFormulaRegularity
 open Lax52.NFAToMSO
 open Lax52.MSOToNFA
 

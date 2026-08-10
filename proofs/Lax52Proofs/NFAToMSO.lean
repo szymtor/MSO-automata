@@ -1,4 +1,5 @@
 import Lax52Proofs.SemanticTransport
+import Lax52Proofs.Structures
 
 namespace Lax52Proofs
 
@@ -8,10 +9,7 @@ open Lax52
 open Lax52.MSOSyntax
 open Lax52.MSOSemantics
 open Lax52.WordStructure
-open Lax52.MarkedWords
 open Lax52.NFARecognizable
-open Lax52.ValidMarkedWordsRegular
-open Lax52.MSOFormulaRegularity
 open Lax52.NFAToMSO
 open Lax52.MSOToNFA
 
@@ -610,15 +608,17 @@ theorem exists_positionRun_iff_accepts (M : NFA Sigma Q) (a : Sigma) (w : List S
 
 theorem realize_nonemptyFormula (w : List Sigma) :
     WordModels w (nonemptyFormula (Sigma := Sigma)) ↔ w ≠ [] := by
+  rw [wordModels_iff_realize]
   cases w with
-  | nil => simp [WordModels, nonemptyFormula]
-  | cons a w => simp [WordModels, nonemptyFormula]
+  | nil => simp [nonemptyFormula]
+  | cons a w => simp [nonemptyFormula]
 
 theorem realize_emptyFormula (w : List Sigma) :
     WordModels w (emptyFormula (Sigma := Sigma)) ↔ w = [] := by
-  change (¬WordModels w (nonemptyFormula (Sigma := Sigma))) ↔ w = []
-  rw [realize_nonemptyFormula]
-  exact not_ne_iff
+  rw [wordModels_iff_realize]
+  cases w with
+  | nil => simp [emptyFormula, nonemptyFormula]
+  | cons a w => simp [emptyFormula, nonemptyFormula]
 
 theorem empty_mem_accepts (M : NFA Sigma Q) :
     [] ∈ M.accepts ↔ ∃ q ∈ M.start, q ∈ M.accept := by
@@ -642,17 +642,22 @@ theorem realize_closedRun (M : NFA Sigma Q) (w : List Sigma) :
 
 theorem runSentence_correct (M : NFA Sigma Q) (w : List Sigma) :
     WordModels w (runSentence M) ↔ w ∈ M.accepts := by
+  rw [wordModels_iff_realize]
   cases w with
   | nil =>
       have he : @MSOSemantics.Realize _ (Fin [].length) (wordStructure []) _ _
           (emptyFormula (Sigma := Sigma))
           (fun i : Fin 0 => Fin.elim0 i) (fun i : Fin 0 => Fin.elim0 i) ↔
-          ([] : List Sigma) = [] := realize_emptyFormula []
+          ([] : List Sigma) = [] :=
+        (wordModels_iff_realize [] (emptyFormula (Sigma := Sigma))).symm.trans
+          (realize_emptyFormula [])
       have hn : @MSOSemantics.Realize _ (Fin [].length) (wordStructure []) _ _
           (nonemptyFormula (Sigma := Sigma))
           (fun i : Fin 0 => Fin.elim0 i) (fun i : Fin 0 => Fin.elim0 i) ↔
-          ([] : List Sigma) ≠ [] := realize_nonemptyFormula []
-      simp only [WordModels, runSentence, MSOSemantics.realize_or,
+          ([] : List Sigma) ≠ [] :=
+        (wordModels_iff_realize [] (nonemptyFormula (Sigma := Sigma))).symm.trans
+          (realize_nonemptyFormula [])
+      simp only [runSentence, MSOSemantics.realize_or,
         MSOSemantics.realize_and, realize_holds, he, hn]
       simp only [ne_eq, eq_self, not_true_eq_false, false_and, or_false, and_true]
       exact (empty_mem_accepts M).symm
@@ -660,13 +665,17 @@ theorem runSentence_correct (M : NFA Sigma Q) (w : List Sigma) :
       have he : @MSOSemantics.Realize _ (Fin (a :: w).length)
           (wordStructure (a :: w)) _ _ (emptyFormula (Sigma := Sigma))
           (fun i : Fin 0 => Fin.elim0 i) (fun i : Fin 0 => Fin.elim0 i) ↔
-          a :: w = [] := realize_emptyFormula (a :: w)
+          a :: w = [] :=
+        (wordModels_iff_realize (a :: w) (emptyFormula (Sigma := Sigma))).symm.trans
+          (realize_emptyFormula (a :: w))
       have hn : @MSOSemantics.Realize _ (Fin (a :: w).length)
           (wordStructure (a :: w)) _ _ (nonemptyFormula (Sigma := Sigma))
           (fun i : Fin 0 => Fin.elim0 i) (fun i : Fin 0 => Fin.elim0 i) ↔
-          a :: w ≠ [] := realize_nonemptyFormula (a :: w)
+          a :: w ≠ [] :=
+        (wordModels_iff_realize (a :: w) (nonemptyFormula (Sigma := Sigma))).symm.trans
+          (realize_nonemptyFormula (a :: w))
       have hc := realize_closedRun M (a :: w)
-      simp only [WordModels, runSentence, MSOSemantics.realize_or,
+      simp only [runSentence, MSOSemantics.realize_or,
         MSOSemantics.realize_and, realize_holds, he, hn, hc,
         runValuation_iff_exists_positionRun]
       constructor

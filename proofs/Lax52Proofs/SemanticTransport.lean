@@ -1,4 +1,5 @@
 import Lax52
+import Lax52Proofs.MSOSemantics
 
 namespace Lax52Proofs
 
