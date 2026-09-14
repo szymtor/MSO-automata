@@ -1,5 +1,8 @@
 import Lax146103
 
+-- Preserve Lean 4.30 elaboration of dependent indices during this port.
+set_option backward.isDefEq.respectTransparency false
+
 namespace Lax146103Proofs
 
 open Set

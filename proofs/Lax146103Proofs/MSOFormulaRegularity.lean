@@ -2,6 +2,9 @@ import Lax146103Proofs.SemanticTransport
 import Lax146103Proofs.Structures
 import Lax146103Proofs.ValidMarkedWordsRegular
 
+-- Preserve Lean 4.30 elaboration of dependent indices during this port.
+set_option backward.isDefEq.respectTransparency false
+
 namespace Lax146103Proofs
 
 open FirstOrder
@@ -611,11 +614,11 @@ theorem represents_dropFO {Sigma : Type u} {n m : Nat}
     obtain ⟨j, rfl⟩ := e.surjective i
     change Sum.inl x ∈ ((w.map dropFO).get (e j)).2 ↔ e (v x.succ) = e j
     rw [e.injective.eq_iff]
-    simpa [e, dropFOEquiv, dropFO] using h.1 j x.succ
+    simpa [e, dropFOEquiv, dropFO] using! h.1 j x.succ
   · intro i X
     obtain ⟨j, rfl⟩ := e.surjective i
     change Sum.inr X ∈ ((w.map dropFO).get (e j)).2 ↔ e j ∈ e '' V X
-    simpa [e, dropFOEquiv, dropFO, e.injective.eq_iff] using h.2 j X
+    simpa [e, dropFOEquiv, dropFO, e.injective.eq_iff] using! h.2 j X
 
 theorem represents_dropSO {Sigma : Type u} {n m : Nat}
     {w : List (MarkedLetter Sigma n (m + 1))}
@@ -633,11 +636,11 @@ theorem represents_dropSO {Sigma : Type u} {n m : Nat}
     obtain ⟨j, rfl⟩ := e.surjective i
     change Sum.inl x ∈ ((w.map dropSO).get (e j)).2 ↔ e (v x) = e j
     rw [e.injective.eq_iff]
-    simpa [e, dropSOEquiv, dropSO] using h.1 j x
+    simpa [e, dropSOEquiv, dropSO] using! h.1 j x
   · intro i X
     obtain ⟨j, rfl⟩ := e.surjective i
     change Sum.inr X ∈ ((w.map dropSO).get (e j)).2 ↔ e j ∈ e '' V X.succ
-    simpa [e, dropSOEquiv, dropSO, e.injective.eq_iff] using h.2 j X.succ
+    simpa [e, dropSOEquiv, dropSO, e.injective.eq_iff] using! h.2 j X.succ
 
 /-- Adding a first-order track does not change the underlying word
 structure. -/
@@ -772,7 +775,7 @@ theorem formulaLanguage_exFO {Sigma : Type u} {n m : Nat}
       fun y => e.symm (MSOSemantics.consVal x v y)
     let V' : Fin m → Set (Fin u.length) := fun X => e.symm '' V X
     have hrep' : Represents u v' V' := by
-      simpa [u, e, v', V'] using represents_addFO hrep x
+      simpa [u, e, v', V'] using! represents_addFO hrep x
     have hv : e ∘ v' = MSOSemantics.consVal x v := by
       funext y
       simp [v']
@@ -829,7 +832,7 @@ theorem formulaLanguage_exSO {Sigma : Type u} {n m : Nat}
     let V' : Fin (m + 1) → Set (Fin u.length) :=
       fun Y => e.symm '' MSOSemantics.consVal X V Y
     have hrep' : Represents u v' V' := by
-      simpa [u, e, v', V'] using represents_addSO hrep X
+      simpa [u, e, v', V'] using! represents_addSO hrep X
     have hv : e ∘ v' = v := by
       funext x
       simp [v']

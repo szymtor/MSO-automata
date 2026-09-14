@@ -99,7 +99,7 @@ theorem realize_closeSO {Sigma : Type u} {n m : Nat}
       · intro h
         exact ⟨fun i => Fin.elim0 i, h⟩
       · rintro ⟨V, h⟩
-        simpa only [Subsingleton.elim V (fun i : Fin 0 => Fin.elim0 i)] using h
+        simpa only [Subsingleton.elim V (fun i : Fin 0 => Fin.elim0 i)] using! h
   | succ m ih =>
       rw [closeSO, ih]
       simp only [MSOSemantics.realize_exSO]
@@ -458,7 +458,7 @@ theorem adjacent_iff_val_succ {n : Nat} (i j : Fin n) :
     by_contra h
     have hmid : i.val + 1 < j.val := by omega
     let z : Fin n := ⟨i.val + 1, lt_trans hmid j.isLt⟩
-    exact hnone ⟨z, by change i.val < i.val + 1; omega, by simpa [z] using hmid⟩
+    exact hnone ⟨z, by change i.val < i.val + 1; omega, by simpa [z] using! hmid⟩
   · intro h
     constructor
     · exact Fin.mk_lt_mk.mpr (by omega)
@@ -512,7 +512,7 @@ theorem pathBefore_transition {M : NFA Sigma Q} {s t : Q} {w : List Sigma}
           | cons next' next t b x hnext p =>
               have hj0 : j = 0 := Fin.ext hj
               subst j
-              simpa [pathBefore] using hstep
+              simpa [pathBefore] using! hstep
       · obtain rfl | ⟨j, rfl⟩ := j.eq_zero_or_eq_succ
         · exact False.elim (by
             have := (adjacent_iff_val_succ i.succ 0).mp hij
@@ -539,7 +539,7 @@ theorem pathBefore_lastStep_aux {M : NFA Sigma Q} {s t : Q} {w : List Sigma}
       | nil =>
           cases p with
           | nil => simpa [pathBefore] using hstep
-      | cons b x => simpa [pathBefore] using ih
+      | cons b x => simpa [pathBefore] using! ih
 
 theorem pathBefore_lastStep {M : NFA Sigma Q} {s t : Q} {a : Sigma} {w : List Sigma}
     (p : M.Path s t (a :: w)) :
